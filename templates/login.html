@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  .auth-wrapper {
+    min-height: calc(100vh - 80px); /* adjusted for header */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .auth-card {
+    background: white;
+    padding: 3.5rem;
+    border-radius: 2.5rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    border-radius: 50%;
+    transform: translate(50px, -50px);
+  }
+
+  .auth-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-light);
+  }
+
+  .auth-card p {
+    color: #64748b;
+    margin-bottom: 2.5rem;
+  }
+
+  .input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+  }
+
+  .input-field {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    font-size: 1rem;
+    color: var(--text-light);
+    transition: var(--transition);
+  }
+
+  .input-field:focus {
+    background: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    outline: none;
+  }
+
+  .auth-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+  }
+
+  .auth-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+  }
+
+  .auth-footer {
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  .auth-footer a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 700;
+    transition: var(--transition);
+  }
+
+  .auth-footer a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+  }
+
+  .alert {
+    padding: 1rem;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .alert-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fee2e2;
+  }
+
+  .alert-success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #dcfce7;
+  }
+
+  @media (max-width: 640px) {
+    .auth-wrapper {
+      padding: 1.5rem;
+    }
+    .auth-card {
+      padding: 2.5rem 1.5rem;
+      border-radius: 2rem;
+    }
+    .auth-card h2 {
+      font-size: 1.75rem;
+    }
+  }
+  body.dark-mode .auth-card { background: #1e293b; border: 1px solid #334155; }
+  body.dark-mode .input-field { background: #0f172a; border-color: #334155; color: white; }
+  body.dark-mode .input-group label { color: #94a3b8; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper fade-in">
+  <div class="auth-card">
+    <h2>Welcome Back</h2>
+    <p>Sign in to your Readezy account</p>
+
+    {% if error %}
+    <div class="alert alert-error">
+      <i class="fas fa-exclamation-circle"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="alert alert-success">
+      <i class="fas fa-check-circle"></i> {{ success }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="input-group">
+        <label for="email">Email or Admin Username</label>
+        <input type="text" id="email" name="email" class="input-field" placeholder="Enter your email" required>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" class="input-field" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="auth-btn">Sign In</button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="{{ url_for('register') }}">Create an account</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

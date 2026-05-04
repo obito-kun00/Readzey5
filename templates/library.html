@@ -1,0 +1,462 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  /* Library Hero */
+  .library-hero {
+    background: var(--bg-light);
+    padding: 6rem 2rem 4rem;
+    text-align: center;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .library-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    color: var(--text-light);
+  }
+
+  .search-wrapper {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .search-wrapper input {
+    width: 100%;
+    padding: 1.25rem 2rem 1.25rem 3.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--glass-border);
+    background: white;
+    box-shadow: var(--card-shadow);
+    font-size: 1.1rem;
+    outline: none;
+    transition: var(--transition);
+  }
+
+  .search-wrapper i {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+  }
+
+  .search-wrapper input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  }
+
+  /* Library Grid */
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 3rem;
+    max-width: 1300px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+  }
+
+  .book-card-premium {
+    background: white;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    transition: var(--transition);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0,0.02);
+  }
+
+  .book-card-premium:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  }
+
+  .book-cover-container {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+  }
+
+  .book-cover-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .book-card-premium:hover .book-cover-container img {
+    transform: scale(1.1);
+  }
+
+  .fav-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    z-index: 10;
+    transition: var(--transition);
+    color: #64748b;
+  }
+
+  .fav-btn:hover {
+    background: white;
+    transform: scale(1.1);
+  }
+
+  .fav-btn.active {
+    color: #fbbf24;
+  }
+
+  .book-info {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .book-info h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .book-info .price {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .read-button {
+    background: #f1f5f9;
+    color: var(--text-light);
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+
+  .read-button:hover {
+    background: var(--primary);
+    color: white;
+  }
+
+  /* No Results */
+  #noResults {
+    display: none;
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem;
+    color: #64748b;
+  }
+
+  @media (max-width: 768px) {
+    .library-hero {
+      padding: 4rem 1.5rem 3rem;
+    }
+    .library-hero h1 {
+      font-size: 2.25rem;
+    }
+    .library-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1.5rem;
+      padding: 0 1.25rem;
+      margin: 2rem auto;
+    }
+    .book-info {
+      padding: 1rem;
+    }
+    .book-info h3 {
+      font-size: 0.95rem;
+    }
+    .search-wrapper input {
+      padding: 1rem 1.5rem 1rem 3rem;
+      font-size: 0.95rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .library-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    animation: modalSlide 0.3s ease-out;
+  }
+
+  @keyframes modalSlide {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .close-modal {
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #64748b;
+    transition: var(--transition);
+  }
+
+  .close-modal:hover { color: var(--primary); }
+
+  /* Reviews List */
+  .reviews-list {
+    margin-top: 1.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+
+  .review-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 1rem;
+  }
+
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .review-user { font-weight: 700; color: var(--text-light); }
+
+  .stars-display { color: #fbbf24; font-size: 0.8rem; }
+
+  /* Rating Form */
+  .rating-form {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f1f5f9;
+  }
+
+  .star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .star-rating input { display: none; }
+
+  .star-rating label {
+    font-size: 2rem;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .star-rating label:hover,
+  .star-rating label:hover ~ label,
+  .star-rating input:checked ~ label {
+    color: #fbbf24;
+  }
+
+  .review-textarea {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1rem;
+    font-family: inherit;
+    resize: none;
+  }
+
+  .submit-review-btn {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .submit-review-btn:hover { background: #4338ca; }
+
+  .review-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+  }
+
+  .btn-reviews {
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    transition: var(--transition);
+    text-align: center;
+    width: 100%;
+  }
+
+  .btn-reviews:hover { background: rgba(79, 70, 229, 0.05); }
+
+  /* Dark Mode Overrides */
+  body.dark-mode .search-wrapper input {
+    background: rgba(0,0,0,0.2);
+    color: white;
+    border-color: #334155;
+  }
+
+  body.dark-mode .book-card-premium {
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+  }
+
+  body.dark-mode .book-info h3 {
+    color: white;
+  }
+
+  body.dark-mode .read-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  body.dark-mode .read-button:hover {
+    background: var(--primary);
+  }
+  
+  body.dark-mode .fav-btn {
+    background: rgba(15, 23, 42, 0.8);
+    color: #e2e8f0;
+  }
+
+  body.dark-mode .fav-btn:hover {
+    background: var(--primary);
+    color: white;
+  }
+  
+  body.dark-mode .fav-btn.active {
+    color: #fbbf24;
+    filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5));
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="library-hero fade-in">
+  <h1>{{ page_title if page_title else 'Discover Your Next Great Read' }}</h1>
+  <div class="search-wrapper">
+    <i class="fas fa-search"></i>
+    <input type="text" id="librarySearch" placeholder="Search by title, author, or genre...">
+  </div>
+</section>
+
+<div class="library-grid">
+  {% for item in books_data %}
+    <div class="book-card-premium fade-in">
+      <div class="book-cover-container">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('toggle_favourite', book_id=item.book.id) }}" class="fav-btn {% if item.is_favourite %}active{% endif %}">
+            <i class="fas fa-star"></i>
+          </a>
+        {% endif %}
+        
+        {% set cover_url = url_for('static', filename=item.book.cover) if item.book.cover else 'https://via.placeholder.com/300x450.png?text=No+Cover' %}
+        <img src="{{ cover_url }}" alt="{{ item.book.title }}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450.png?text=No+Cover';">
+      </div>
+      
+      <div class="book-info">
+        <div>
+          <div class="empty-badge" style="height: 1.5rem;"></div>
+          <h3>{{ item.book.title }}</h3>
+          <p class="price">Free Access</p>
+        </div>
+        
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('read', book_id=item.book.id) }}" class="read-button">Start Reading</a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="read-button">Login to Read</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  
+  <div id="noResults">
+    <i class="fas fa-search-minus" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+    <p>We couldn't find any books matching your search.</p>
+  </div>
+</div>
+
+<script>
+document.getElementById('librarySearch').addEventListener('input', function () {
+  const query = this.value.toLowerCase();
+  const cards = document.querySelectorAll('.book-card-premium');
+  let hasResults = false;
+
+  cards.forEach(card => {
+    const title = card.querySelector('h3').innerText.toLowerCase();
+    if (title.includes(query)) {
+      card.style.display = 'flex';
+      hasResults = true;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  document.getElementById('noResults').style.display = hasResults ? 'none' : 'block';
+});
+</script>
+
+{% endblock %}

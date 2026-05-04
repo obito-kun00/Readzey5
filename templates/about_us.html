@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  .about-container {
+    max-width: 1000px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+  }
+
+  .about-hero {
+    text-align: center;
+    margin-bottom: 5rem;
+  }
+
+  .about-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-light);
+  }
+
+  .about-hero p {
+    font-size: 1.25rem;
+    color: #64748b;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .about-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 2.5rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .about-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .about-card p {
+    color: #475569;
+    line-height: 1.7;
+    font-size: 1.1rem;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2.5rem;
+  }
+
+  .feature-item {
+    background: #f8fafc;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    border: 1px solid #e2e8f0;
+    transition: var(--transition);
+  }
+
+  .feature-item:hover {
+    transform: translateY(-5px);
+    background: white;
+    border-color: var(--primary);
+    box-shadow: var(--card-shadow);
+  }
+
+  .feature-item i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-bottom: 1.25rem;
+    display: block;
+  }
+
+  .feature-item h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--text-light);
+  }
+
+  .feature-item p {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin-bottom: 0;
+  }
+
+  .team-section {
+    text-align: center;
+    margin-top: 5rem;
+  }
+
+  .team-grid {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-top: 3rem;
+  }
+
+  .team-member {
+    text-align: center;
+  }
+
+  .avatar-circle {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+    font-weight: 800;
+    border: 4px solid white;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition);
+  }
+
+  .team-member:hover .avatar-circle {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  }
+
+  .member-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-light);
+  }
+
+  .member-role {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+  }
+
+  .cta-section {
+    background: var(--primary);
+    padding: 4rem;
+    border-radius: 3rem;
+    text-align: center;
+    color: white;
+    margin-top: 5rem;
+    box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.2);
+  }
+
+  .cta-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: white;
+  }
+
+  body.dark-mode .about-card { background: #1e293b; border: 1px solid #334155; }
+  body.dark-mode .feature-item { background: #0f172a; border-color: #334155; }
+  body.dark-mode .feature-item:hover { background: #1e293b; }
+  body.dark-mode .about-card p { color: #cbd5e1; }
+  body.dark-mode .feature-item h4 { color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-container fade-in">
+  <!-- Hero Section -->
+  <header class="about-hero">
+    <h1>Our Story</h1>
+    <p>We're on a mission to make knowledge accessible, one digital page at a time. Readezy started as a small dream to bridge the gap between readers and the world's greatest literature.</p>
+  </header>
+
+  <!-- Mission Card -->
+  <section class="about-card">
+    <h2><i class="fas fa-bullseye"></i> Our Mission</h2>
+    <p>We believe that literacy and knowledge are fundamental human rights. Our platform is built on the simple idea that your location or financial status shouldn't limit your ability to read great books. By providing a seamless, free-to-use digital library, we empower thousands of readers every day to explore new worlds, learn new skills, and find inspiration.</p>
+  </section>
+
+  <!-- Features Grid -->
+  <section>
+    <h2 style="font-family: 'Playfair Display', serif; text-align: center; font-size: 2.25rem; margin-bottom: 3rem;">Why Choose Readezy</h2>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <i class="fas fa-globe"></i>
+        <h4>Limitless Selection</h4>
+        <p>From timeless classics to modern non-fiction, our catalog spans across every genre imaginable.</p>
+      </div>
+      <div class="feature-item">
+        <i class="fas fa-bolt"></i>
+        <h4>Instant Browsing</h4>
+        <p>Start reading in seconds with our optimized PDF viewer and instant-access library.</p>
+      </div>
+      <div class="feature-item">
+        <i class="fas fa-mobile-alt"></i>
+        <h4>Read Anywhere</h4>
+        <p>Fully responsive platform that looks beautiful on desktops, tablets, and smartphones.</p>
+      </div>
+      <div class="feature-item">
+        <i class="fas fa-heart"></i>
+        <h4>Fully Free</h4>
+        <p>Our commitment is simple: no subscription fees, no paywalls, just pure reading joy.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section class="team-section">
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 2rem;">Meet the Visionaries</h2>
+    <div class="team-grid">
+      <div class="team-member">
+        <div class="avatar-circle">A</div>
+        <div class="member-name">Alex Rivera</div>
+        <div class="member-role">Founder & CEO</div>
+      </div>
+      <div class="team-member">
+        <div class="avatar-circle">S</div>
+        <div class="member-name">Sarah Chen</div>
+        <div class="member-role">Head of Product</div>
+      </div>
+      <div class="team-member">
+        <div class="avatar-circle">M</div>
+        <div class="member-name">Marcus Thorne</div>
+        <div class="member-role">Lead Architect</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <h2>Ready to start your journey?</h2>
+    <p style="opacity: 0.9; margin-bottom: 2rem;">Join tens of thousands of readers who are already exploring our library.</p>
+    <a href="{{ url_for('library') }}" class="btn-secondary" style="background: white; color: var(--primary); padding: 1rem 2.5rem; font-size: 1.1rem;">Explore the Library</a>
+  </section>
+</div>
+{% endblock %}

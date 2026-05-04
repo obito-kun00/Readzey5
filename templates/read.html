@@ -1,0 +1,1394 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  .reader-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    height: calc(100vh - 70px);
+    overflow: hidden;
+    background: #f1f5f9;
+    color: #1e293b; /* Explicitly set light mode text color */
+  }
+
+  /* Reader Sidebar */
+  .reader-sidebar {
+    background: white;
+    color: #1e293b; /* Explicitly set light mode text color */
+    border-right: 1px solid var(--glass-border);
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    overflow-y: auto;
+    z-index: 20;
+    box-shadow: 10px 0 15px -3px rgba(0, 0, 0, 0.02);
+  }
+
+  .reader-sidebar h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    line-height: 1.3;
+    color: var(--text-light);
+  }
+
+  .sidebar-cover {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+  }
+
+  .reading-progress-card {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid #e2e8f0;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #64748b;
+  }
+
+  .reader-back-btn {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+
+  .reader-back-btn:hover {
+    color: var(--primary);
+    transform: translateX(-5px);
+  }
+
+  /* PDF Viewer Area */
+  .reader-main {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .reader-toolbar {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 10;
+  }
+
+  .toolbar-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: var(--transition);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .toolbar-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  .zoom-level {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #64748b;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .pdf-viewport {
+    flex: 1;
+    overflow-y: auto;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    scroll-behavior: smooth;
+  }
+
+  #pdf-container canvas {
+    max-width: 100%;
+    height: auto !important;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .pdf-page-wrapper {
+    position: relative;
+  }
+
+  .page-number-tag {
+    position: absolute;
+    top: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  @media (max-width: 968px) {
+    .reader-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .reader-sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 320px;
+      max-width: 85vw;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 15px 0 30px rgba(0,0,0,0.1);
+      z-index: 1500;
+    }
+
+    .reader-sidebar.active {
+      transform: translateX(0);
+    }
+
+    .pdf-viewport {
+      padding: 2rem 1rem 8rem;
+    }
+
+    .reader-toolbar {
+      padding: 0.5rem 1rem;
+      gap: 0.5rem;
+      justify-content: center;
+      min-height: 50px;
+    }
+
+    .toolbar-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+    }
+
+    .zoom-level {
+      font-size: 0.8rem;
+      min-width: 42px;
+    }
+  }
+
+  /* Sidebar Overlay for Mobile */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+    z-index: 1499;
+    display: none;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  /* Transition for dark mode specific to reader */
+  body.dark-mode .reader-grid {
+    background: #0f172a;
+    color: #f1f5f9;
+  }
+
+  body.dark-mode .reader-sidebar {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+
+  body.dark-mode .reading-progress-card {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+
+  body.dark-mode .reader-main {
+    background: #0f172a;
+  }
+
+  body.dark-mode .reader-toolbar {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: #1e293b;
+  }
+
+  body.dark-mode .toolbar-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+</script>
+
+<style>
+/* Chat and Sync Styles */
+.session-panel {
+  margin-top: 2rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sync-toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(79, 70, 229, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.chat-box {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+body.dark-mode .chat-box {
+  background: rgba(0,0,0,0.2);
+  border-color: #334155;
+}
+
+.chat-msg {
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: #f1f5f9;
+}
+
+body.dark-mode .chat-msg { background: #1e293b; }
+
+.chat-input-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  outline: none;
+}
+
+body.dark-mode .chat-input {
+  background: transparent;
+  color: white;
+  border-color: #334155;
+}
+
+.chat-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.chat-btn:hover { background: var(--primary-hover); }
+
+/* Mobile Settings Toggle for Audio Bar */
+.voice-mobile-settings {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  width: 280px;
+  box-shadow: 0 -10px 25px rgba(0,0,0,0.15);
+  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 1.25rem;
+  border: 1px solid var(--glass-border);
+  z-index: 1001;
+}
+
+.voice-mobile-settings.active {
+  display: flex;
+}
+
+body.dark-mode .voice-mobile-settings {
+  background: #1e293b;
+}
+
+#open-mobile-voice-settings {
+  display: none;
+}
+
+/* Toggle Switch Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 24px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px; width: 16px;
+  left: 4px; bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* AI Voice Assistant Styles */
+.voice-panel {
+  background: linear-gradient(135deg, rgba(192, 38, 211, 0.1), rgba(147, 51, 234, 0.1));
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  backdrop-filter: blur(8px);
+  transition: var(--transition);
+}
+
+.voice-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.voice-header i {
+  color: var(--primary);
+  font-size: 1.25rem;
+}
+
+.voice-header span {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.voice-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.voice-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  color: var(--text-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  font-size: 1.1rem;
+}
+
+.voice-btn:hover {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.voice-btn.primary {
+  background: var(--primary);
+  color: white;
+  width: 55px;
+  height: 55px;
+  font-size: 1.4rem;
+}
+
+.voice-btn.primary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 10px 15px -3px rgba(192, 38, 211, 0.3);
+}
+
+.voice-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.voice-select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+  background: white;
+  outline: none;
+  color: #1e293b;
+}
+
+.speed-slider {
+  flex: 1;
+  margin-left: 1rem;
+  accent-color: var(--primary);
+}
+
+/* Audio Wave Animation */
+.voice-wave {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 15px;
+}
+
+.voice-wave.active { display: flex; }
+
+.wave-bar {
+  width: 3px;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  animation: wave 1s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes wave {
+  0%, 100% { height: 5px; }
+  50% { height: 15px; }
+}
+
+body.dark-mode .voice-btn { background: #334155; color: white; }
+@media (max-width: 768px) {
+    .floating-audio-bar {
+      bottom: 1.5rem;
+      padding: 0.5rem 1rem;
+      gap: 0.5rem;
+      width: calc(100% - 2rem);
+      max-width: 450px;
+      justify-content: space-between;
+      border-radius: 1.5rem;
+    }
+
+    .floating-audio-bar > div:first-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .floating-audio-bar > div:first-child span {
+      display: none; /* Hide "AI Reader" text */
+    }
+
+    .floating-audio-bar .voice-controls {
+      gap: 0.25rem;
+    }
+
+    .voice-btn.primary {
+      width: 42px;
+      height: 42px;
+      font-size: 1.1rem;
+    }
+
+    /* Hide complex desktop-only controls directly */
+    .desktop-voice-settings {
+      display: none !important;
+    }
+    
+    #open-mobile-voice-settings {
+      display: flex !important;
+      width: 42px;
+      height: 42px;
+    }
+
+    #open-voice-list {
+      padding: 0;
+      width: 42px;
+      height: 42px;
+    }
+    
+    #open-voice-list span {
+      display: none;
+    }
+  }
+body.dark-mode .voice-select { background: #1e293b; color: white; border-color: #334155; }
+  /* Floating Audio Bar */
+  .floating-audio-bar {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    z-index: 1000;
+    transition: var(--transition);
+    animation: slideUp 0.5s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translate(-50%, 100%); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+  }
+
+  .floating-audio-bar:hover {
+    background: white;
+    box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Mini Library Listing */
+  .mini-library {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .mini-library h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+    font-weight: 700;
+  }
+
+  .mini-book-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .mini-book-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition);
+    background: transparent;
+  }
+
+  .mini-book-item:hover {
+    background: rgba(192, 38, 211, 0.05);
+    transform: translateX(5px);
+  }
+
+  .mini-book-cover {
+    width: 45px;
+    height: 60px;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  }
+
+  .mini-book-info {
+    overflow: hidden;
+  }
+
+  .mini-book-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mini-book-author {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  /* Voice List Modal/Overlay */
+  .voice-listing-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .voice-listing-content {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    border-radius: 2rem;
+    padding: 2rem;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  }
+
+  body.dark-mode .voice-listing-content {
+    background: #1e293b;
+    color: white;
+  }
+
+  body.dark-mode .floating-audio-bar {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(255,255,255,0.1);
+  }
+
+  .voice-grid-item {
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .voice-grid-item:hover {
+    border-color: var(--primary);
+    background: rgba(192, 38, 211, 0.05);
+  }
+
+  .voice-grid-item.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .premium-badge {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3);
+  }
+
+  /* Emotion Selector Styles */
+  .emotion-selector {
+    background: transparent;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    outline: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .emotion-selector:hover {
+    background: rgba(0,0,0,0.05);
+  }
+
+  body.dark-mode .emotion-selector {
+    color: #cbd5e1;
+  }
+  body.dark-mode .emotion-selector:hover {
+    background: rgba(255,255,255,0.05);
+  }
+</style>
+<script>
+  window.toggleSidebar = function() {
+    const sidebar = document.getElementById('reader-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+  };
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div class="reader-grid">
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="reader-sidebar" id="reader-sidebar">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <a href="{{ url_for('library') }}" class="reader-back-btn" style="margin-top: 0;">
+        <i class="fas fa-arrow-left"></i>
+        Library
+      </a>
+      <button onclick="toggleSidebar()" class="toolbar-btn mobile-only" style="display: none; border:none; background:none;"><i class="fas fa-times"></i></button>
+    </div>
+
+    <img
+      src="{{ url_for('static', filename='cover/' + (book.cover.split('/')[-1] if '/' in book.cover else book.cover)) }}"
+      class="sidebar-cover" alt="Cover"
+      onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450.png?text=No+Cover';">
+
+    <div>
+      <h2>{{ book.title }}</h2>
+      <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.5rem;">By {{ book.author if book.author else 'Unknown
+        Author' }}</p>
+    </div>
+
+    <div class="reading-progress-card">
+      <div class="progress-label">
+        <span>Completion</span>
+        <span id="progress-percentage">0%</span>
+      </div>
+      <div class="progress-bar-bg" style="height: 6px;">
+        <div id="sidebar-progress-fill" class="progress-bar-fill" style="width: 0%"></div>
+      </div>
+      <p style="margin-top: 1rem; font-size: 0.85rem; color: #64748b; text-align: center;">
+        Currently at page <span id="progress-text" style="font-weight: 700; color: var(--primary);">{{ current_page
+          }}</span> of {{ book.total_pages }}
+      </p>
+    </div>
+
+    <!-- Sidebar Voice Controls Removed in Favor of Floating Bar -->
+
+    <div style="margin-top: 1.5rem;">
+      <small style="color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Reader Settings</small>
+      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <button onclick="toggleTheme()" class="toolbar-btn" title="Toggle Theme"><i class="fas fa-moon"></i></button>
+        <button onclick="window.print()" class="toolbar-btn" title="Print Selection"><i class="fas fa-print"></i></button>
+      </div>
+    </div>
+
+    <!-- Mini Library / Book Listing -->
+    <div class="mini-library">
+      <h3>More from Library</h3>
+      <div class="mini-book-list">
+        {% for b in all_books %}
+          {% if b.id != book.id %}
+            <a href="{{ url_for('read', book_id=b.id) }}" class="mini-book-item">
+              <img src="{{ url_for('static', filename='cover/' + (b.cover.split('/')[-1] if '/' in b.cover else b.cover)) }}" class="mini-book-cover" alt="Cover" onerror="this.src='https://via.placeholder.com/100x150?text=No+Cover'">
+              <div class="mini-book-info">
+                <div class="mini-book-title">{{ b.title }}</div>
+                <div class="mini-book-author">{{ b.author or 'Unknown Author' }}</div>
+              </div>
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if room_id %}
+    <div class="session-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1rem; color: var(--primary); margin: 0;">Reading with {{ partner.username }}</h3>
+        <a href="{{ url_for('library') }}" style="background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#ef4444';"><i class="fas fa-sign-out-alt"></i> Leave</a>
+      </div>
+      
+      <div class="sync-toggle-container">
+        <span style="font-size: 0.85rem; font-weight: 600;">Sync Pages</span>
+        <label class="switch">
+          <input type="checkbox" id="sync-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="chat-box" id="chat-box" style="word-wrap: break-word; overflow-x: hidden;"></div>
+      <div class="chat-input-container">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." autocomplete="off" style="min-width: 0;">
+        <button id="send-btn" class="chat-btn"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+    {% endif %}
+  </aside>
+
+  <!-- Main Viewport -->
+  <main class="reader-main">
+    <div class="reader-toolbar">
+      <button onclick="toggleSidebar()" class="toolbar-btn" id="sidebar-toggle" title="Menu"><i class="fas fa-bars"></i></button>
+      <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 0.25rem;"></div>
+      <button id="zoom-out" class="toolbar-btn"><i class="fas fa-search-minus"></i></button>
+      <span class="zoom-level" id="zoom-val">120%</span>
+      <button id="zoom-in" class="toolbar-btn"><i class="fas fa-search-plus"></i></button>
+      <div style="width: 1px; height: 24px; background: #e2e8f0; margin: 0 0.5rem;" class="desktop-only"></div>
+      <button onclick="document.querySelector('.pdf-viewport').requestFullscreen()" class="toolbar-btn desktop-only"><i
+          class="fas fa-expand"></i></button>
+    </div>
+
+    <div class="pdf-viewport">
+      <div id="pdf-container"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Floating Audio Bar -->
+<div class="floating-audio-bar">
+  <div style="display: flex; align-items: center; gap: 0.75rem; border-right: 1px solid #e2e8f0; padding-right: 1.5rem;">
+    <i class="fas fa-robot" style="color: var(--primary);"></i>
+    <span style="font-weight: 700; font-size: 0.9rem;">AI Reader</span>
+    <div class="voice-wave" id="voice-wave">
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+    </div>
+  </div>
+
+  <div class="voice-controls" style="display: flex; gap: 0.75rem;">
+    <button id="voice-stop" class="toolbar-btn" style="border: none; background: transparent;" title="Stop"><i class="fas fa-stop"></i></button>
+    <button id="voice-play-pause" class="voice-btn primary" title="Play"><i class="fas fa-play" id="play-icon"></i></button>
+    <button id="voice-next" class="toolbar-btn" style="border: none; background: transparent;" title="Next Page"><i class="fas fa-step-forward"></i></button>
+  </div>
+
+  <div class="desktop-voice-settings" style="display: flex; align-items: center; gap: 1rem; border-left: 1px solid #e2e8f0; padding-left: 1.5rem;">
+    <button id="open-voice-list" class="toolbar-btn" style="width: auto; padding: 0 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; gap: 0.5rem; display: flex; align-items: center;">
+      <i class="fas fa-comment-dots"></i> <span id="current-voice-name">Select Voice</span>
+    </button>
+    
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fas fa-tachometer-alt" style="font-size: 0.8rem; color: #64748b;"></i>
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <div style="display: flex; justify-content: space-between; width: 80px;">
+           <span style="font-size: 0.6rem; color: #94a3b8; font-weight: 700;">SPEED</span>
+           <span id="speed-val" style="font-size: 0.65rem; font-weight: 700; color: var(--primary);">1.0x</span>
+        </div>
+        <input type="range" id="voice-speed" class="speed-slider" min="0.5" max="2" step="0.1" value="1" style="width: 80px;">
+      </div>
+      
+      <div style="width: 1px; height: 30px; background: #e2e8f0; margin: 0 0.5rem;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 0.6rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Emotion</span>
+        <select id="emotion-preset" class="emotion-selector">
+          <option value="natural">🏡 Natural</option>
+          <option value="calm">🧘 Calm</option>
+          <option value="excited">⚡ Energetic</option>
+          <option value="serious">🕯️ Storyteller</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Toggle for Settings -->
+  <div class="mobile-only" style="display: none; align-items: center; gap: 0.5rem;">
+    <button id="open-voice-list-mobile" class="toolbar-btn" onclick="document.getElementById('open-voice-list').click()"><i class="fas fa-comment-dots"></i></button>
+    <button id="open-mobile-voice-settings" class="toolbar-btn" onclick="document.getElementById('mobile-voice-settings').classList.toggle('active')"><i class="fas fa-cog"></i></button>
+  </div>
+
+  <div id="mobile-voice-settings" class="voice-mobile-settings">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 700; font-size: 0.9rem;">Voice Settings</span>
+        <button onclick="document.getElementById('mobile-voice-settings').classList.remove('active')" style="background:none; border:none; color:#64748b;"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 0.8rem; font-weight: 600; color: #64748b;">SPEED</span>
+            <span id="speed-val-mobile" style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">1.0x</span>
+        </div>
+        <input type="range" id="voice-speed-mobile" class="speed-slider" min="0.5" max="2" step="0.1" value="1" oninput="document.getElementById('voice-speed').value = this.value; document.getElementById('voice-speed').dispatchEvent(new Event('input'))">
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <span style="font-size: 0.8rem; font-weight: 600; color: #64748b;">EMOTION</span>
+        <select id="emotion-preset-mobile" class="emotion-selector" style="width: 100%;" onchange="document.getElementById('emotion-preset').value = this.value; document.getElementById('emotion-preset').dispatchEvent(new Event('change'))">
+          <option value="natural">🏡 Natural</option>
+          <option value="calm">🧘 Calm</option>
+          <option value="excited">⚡ Energetic</option>
+          <option value="serious">🕯️ Storyteller</option>
+        </select>
+    </div>
+  </div>
+</div>
+
+<!-- Voice Listing Overlay -->
+<div class="voice-listing-overlay" id="voice-overlay">
+  <div class="voice-listing-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h2 style="font-family: 'Playfair Display', serif;">Select AI Voice</h2>
+      <button id="close-voice-list" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="voice-grid" style="display: grid; gap: 1rem;">
+      <!-- Voices will be injected here -->
+    </div>
+  </div>
+</div>
+
+{% set pdf_name = book.pdfs.split('/')[-1] if '/' in book.pdfs else book.pdfs %}
+{% set pdf_url = url_for('static', filename='pdfs/' + pdf_name) %}
+
+<script>
+  const url = "{{ pdf_url }}";
+  let scale = 1.2;
+  const totalPages = parseInt("{{ book.total_pages | default(1, true) }}") || 1;
+  const INITIAL_PAGE = parseInt("{{ current_page | default(1) }}", 10) || 1;
+  let lastSentPage = INITIAL_PAGE;
+  let pdfDocument = null;
+
+  /* AI Voice Assistant Engine */
+  class BookAIReader {
+    constructor() {
+      this.synth = window.speechSynthesis;
+      this.utterance = new SpeechSynthesisUtterance();
+      this.isPlaying = false;
+      this.currentPage = INITIAL_PAGE;
+      this.voices = [];
+      this.selectedVoiceIndex = -1;
+      this.speed = 1.0;
+      
+      this.init();
+    }
+
+    init() {
+      // Voice Loading & UI Setup
+      const updateVoices = () => {
+        this.voices = this.synth.getVoices();
+        // Prioritize: Google, Natural, Neural, Online
+        this.voices.sort((a, b) => {
+            const getPriority = (v) => {
+                const name = v.name.toLowerCase();
+                if (name.includes('natural') || name.includes('online')) return 0;
+                if (name.includes('google')) return 1;
+                if (name.includes('neural')) return 2;
+                return 3;
+            };
+            return getPriority(a) - getPriority(b);
+        });
+        this.renderVoiceList();
+      };
+      
+      if (this.synth.onvoiceschanged !== undefined) {
+        this.synth.onvoiceschanged = updateVoices;
+      }
+      setTimeout(updateVoices, 100);
+
+      // Utterance events
+      this.utterance.onend = () => {
+        if (this.isPlaying) {
+          if (this.currentPage < totalPages) {
+            this.currentPage++;
+            this.speakCurrentPage();
+          } else {
+            this.stop();
+          }
+        }
+      };
+
+      // Floating UI Selectors
+      const playPauseBtn = document.getElementById('voice-play-pause');
+      const stopBtn = document.getElementById('voice-stop');
+      const nextBtn = document.getElementById('voice-next');
+      const speedSlider = document.getElementById('voice-speed');
+      const emotionSelector = document.getElementById('emotion-preset');
+      const openModalBtn = document.getElementById('open-voice-list');
+      const closeModalBtn = document.getElementById('close-voice-list');
+      const overlay = document.getElementById('voice-overlay');
+
+      // Control Events
+      playPauseBtn.addEventListener('click', () => this.togglePlay());
+      stopBtn.addEventListener('click', () => this.stop());
+      nextBtn.addEventListener('click', () => this.nextPage());
+      
+      speedSlider.addEventListener('input', (e) => {
+        this.speed = parseFloat(e.target.value);
+        document.getElementById('speed-val').innerText = `${this.speed.toFixed(1)}x`;
+        if (this.isPlaying) {
+          this.pause();
+          this.play();
+        }
+      });
+
+      emotionSelector.addEventListener('change', (e) => {
+          this.applyEmotion(e.target.value);
+          if (this.isPlaying) {
+              this.pause();
+              this.play();
+          }
+      });
+
+      // Modal Events
+      openModalBtn.addEventListener('click', () => { overlay.style.display = 'flex'; });
+      closeModalBtn.addEventListener('click', () => { overlay.style.display = 'none'; });
+      window.addEventListener('click', (e) => { if (e.target === overlay) overlay.style.display = 'none'; });
+    }
+
+    applyEmotion(type) {
+        switch(type) {
+            case 'calm': this.pitch = 0.85; this.speedMod = 0.85; break;
+            case 'excited': this.pitch = 1.3; this.speedMod = 1.15; break;
+            case 'serious': this.pitch = 0.65; this.speedMod = 0.95; break;
+            default: this.pitch = 1.0; this.speedMod = 1.0;
+        }
+    }
+
+    renderVoiceList() {
+      const grid = document.getElementById('voice-grid');
+      const nameLabel = document.getElementById('current-voice-name');
+      grid.innerHTML = '';
+      
+      this.voices.forEach((voice, index) => {
+        const isPremium = voice.name.toLowerCase().includes('natural') || 
+                          voice.name.toLowerCase().includes('online') || 
+                          voice.name.toLowerCase().includes('google') ||
+                          voice.name.toLowerCase().includes('neural');
+
+        const item = document.createElement('div');
+        item.className = `voice-grid-item ${this.selectedVoiceIndex === index ? 'active' : ''}`;
+        item.innerHTML = `
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-weight: 700;">${voice.name}</span>
+                ${isPremium ? '<span class="premium-badge"><i class="fas fa-sparkles"></i> Human</span>' : ''}
+            </div>
+            <div style="font-size: 0.75rem; opacity: 0.8;">${voice.lang}</div>
+          </div>
+          <i class="fas fa-volume-up" style="opacity: 0.5;"></i>
+        `;
+        
+        item.onclick = () => {
+          this.selectedVoiceIndex = index;
+          nameLabel.innerText = voice.name.split(' ')[0];
+          document.getElementById('voice-overlay').style.display = 'none';
+          this.renderVoiceList();
+          if (this.isPlaying) {
+            this.pause();
+            this.play();
+          }
+        };
+        grid.appendChild(item);
+
+        if (this.selectedVoiceIndex === -1 && voice.default) {
+            this.selectedVoiceIndex = index;
+            nameLabel.innerText = voice.name.split(' ')[0];
+        }
+      });
+    }
+
+    async extractText(pageNum) {
+      if (!pdfDocument) return "";
+      try {
+        const page = await pdfDocument.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        let text = textContent.items.map(item => item.str).join(' ');
+        
+        // Smart Cleanup
+        text = text.replace(/\b\d+\b/g, ''); 
+        return text;
+      } catch (err) {
+        console.error("Text extraction failed:", err);
+        return "";
+      }
+    }
+
+    async speakCurrentPage() {
+      this.updateUI();
+      const text = await this.extractText(this.currentPage);
+      if (!text.trim()) {
+        if (this.currentPage < totalPages) {
+          this.currentPage++;
+          this.speakCurrentPage();
+        } else {
+          this.stop();
+        }
+        return;
+      }
+
+      // Scroll view to focus page
+      const targetCanvas = document.querySelector(`canvas[data-page="${this.currentPage}"]`);
+      if (targetCanvas) targetCanvas.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      this.utterance.text = text;
+      // Combine user speed with emotion speed modifier
+      this.utterance.rate = this.speed * (this.speedMod || 1.0);
+      this.utterance.pitch = this.pitch || 1.0;
+      
+      if (this.selectedVoiceIndex !== -1) {
+        this.utterance.voice = this.voices[this.selectedVoiceIndex];
+      }
+
+      this.synth.cancel();
+      this.synth.speak(this.utterance);
+    }
+
+    togglePlay() {
+      if (this.isPlaying) {
+        this.pause();
+      } else {
+        this.currentPage = lastSentPage;
+        this.play();
+      }
+    }
+
+    play() {
+      this.isPlaying = true;
+      this.speakCurrentPage();
+    }
+
+    pause() {
+      this.isPlaying = false;
+      this.synth.cancel();
+      this.updateUI();
+    }
+
+    stop() {
+      this.isPlaying = false;
+      this.synth.cancel();
+      this.updateUI();
+    }
+
+    nextPage() {
+      if (this.currentPage < totalPages) {
+        this.currentPage++;
+        if (this.isPlaying) this.speakCurrentPage();
+        else {
+           const targetCanvas = document.querySelector(`canvas[data-page="${this.currentPage}"]`);
+           if (targetCanvas) targetCanvas.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    updateUI() {
+      const playBtn = document.getElementById('voice-play-pause');
+      const playIcon = document.getElementById('play-icon');
+      const wave = document.getElementById('voice-wave');
+
+      if (this.isPlaying) {
+        playIcon.className = 'fas fa-pause';
+        wave.classList.add('active');
+        playBtn.classList.remove('primary');
+        playBtn.style.background = '#ef4444';
+      } else {
+        playIcon.className = 'fas fa-play';
+        wave.classList.remove('active');
+        playBtn.classList.add('primary');
+        playBtn.style.background = '';
+      }
+    }
+  }
+
+  const aiReader = new BookAIReader();
+
+  let updateReadingProgress = function(page) {
+    if (page !== lastSentPage) {
+      lastSentPage = page;
+      const percentage = Math.round((page / totalPages) * 100);
+      document.getElementById('progress-text').innerText = page;
+      document.getElementById('progress-percentage').innerText = `${percentage}%`;
+      document.getElementById('sidebar-progress-fill').style.width = `${percentage}%`;
+
+      fetch('{{ url_for("update_progress") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `book_id={{ book.id }}&current_page=${page}`
+      })
+        .catch(err => console.error('Progress sync failed:', err));
+    }
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const pageNum = parseInt(entry.target.getAttribute("data-page"));
+        updateReadingProgress(pageNum);
+      }
+    });
+  }, {
+    root: document.querySelector(".pdf-viewport"),
+    threshold: 0.4
+  });
+
+  async function renderAllPages(pdfDoc) {
+    const container = document.getElementById('pdf-container');
+    container.innerHTML = '';
+
+    for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale });
+
+      const wrapper = document.createElement('div');
+      wrapper.className = "pdf-page-wrapper";
+      wrapper.style.minHeight = `${viewport.height}px`;
+      wrapper.innerHTML = `<span class="page-number-tag">PAGE ${pageNum}</span>`;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      canvas.setAttribute("data-page", pageNum);
+
+      wrapper.appendChild(canvas);
+      container.appendChild(wrapper);
+
+      const context = canvas.getContext('2d');
+      await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+      observer.observe(canvas);
+
+      if (pageNum === INITIAL_PAGE && INITIAL_PAGE > 1) {
+        wrapper.scrollIntoView();
+      }
+    }
+  }
+
+  document.getElementById('zoom-in').addEventListener('click', () => {
+    scale = parseFloat((scale + 0.2).toFixed(1));
+    updateZoomUI();
+    pdfjsLib.getDocument(url).promise.then(renderAllPages);
+  });
+
+  document.getElementById('zoom-out').addEventListener('click', () => {
+    scale = Math.max(0.6, parseFloat((scale - 0.2).toFixed(1)));
+    updateZoomUI();
+    pdfjsLib.getDocument(url).promise.then(renderAllPages);
+  });
+
+  function updateZoomUI() {
+    document.getElementById('zoom-val').innerText = `${Math.round(scale * 100)}%`;
+  }
+
+  // Initial Load
+  pdfjsLib.getDocument(url).promise.then(pdfDoc => {
+    pdfDocument = pdfDoc; // Store globally for AI Reader
+    renderAllPages(pdfDoc);
+    // Sync initial UI
+    const pct = Math.round((INITIAL_PAGE / totalPages) * 100);
+    document.getElementById('progress-percentage').innerText = `${pct}%`;
+    document.getElementById('sidebar-progress-fill').style.width = `${pct}%`;
+  }).catch(err => {
+    document.getElementById('pdf-container').innerHTML = `<div class="error" style="background: #fee2e2; color: #b91c1c; padding: 2rem; border-radius: 1rem; text-align: center;">
+      <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <p>Unable to load PDF. Please check your connection or try again later.</p>
+    </div>`;
+  });
+
+  // Socket.io Integration
+  const roomIDStr = "{{ room_id | default('', true) }}";
+  if (roomIDStr !== "" && window.globalSocket) {
+    const socket = window.globalSocket;
+    const currentUser = "{{ current_user.username if current_user.is_authenticated else '' }}";
+    const syncToggle = document.getElementById('sync-toggle');
+    let isProgrammaticScroll = false; // Prevent infinite sync loops
+
+    socket.emit('join_reading_room', { room: roomIDStr, username: currentUser });
+
+    socket.on('chat_message', function(data) {
+      const chatBox = document.getElementById('chat-box');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'chat-msg';
+      msgDiv.innerHTML = `<strong>${data.user}:</strong> ${data.msg}`;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    document.getElementById('send-btn').addEventListener('click', () => {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (msg) {
+        socket.emit('chat_message', { room: roomIDStr, username: currentUser, msg: msg });
+        
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg';
+        msgDiv.innerHTML = `<strong>You:</strong> ${msg}`;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        input.value = '';
+      }
+    });
+
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') document.getElementById('send-btn').click();
+    });
+
+    // Handle outgoing page turns
+    const originalUpdateReadingProgress = updateReadingProgress;
+    updateReadingProgress = function(page) {
+      originalUpdateReadingProgress(page);
+      if (!isProgrammaticScroll && syncToggle && syncToggle.checked) {
+        socket.emit('page_turn', { room: roomIDStr, page: page });
+      }
+    };
+
+    // Handle incoming page turns
+    socket.on('sync_page', function(data) {
+      if (syncToggle && syncToggle.checked) {
+        const targetCanvas = document.querySelector(`canvas[data-page="${data.page}"]`);
+        if (targetCanvas) {
+          isProgrammaticScroll = true;
+          targetCanvas.scrollIntoView({ behavior: 'smooth' });
+          // Release the lock after a timeout
+          setTimeout(() => { isProgrammaticScroll = false; }, 1000);
+        }
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      socket.emit('leave_reading_room', { room: roomIDStr, username: currentUser });
+    });
+  }
+</script>
+{% endblock %}

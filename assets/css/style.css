@@ -1,0 +1,97 @@
+/* ===== Modern Gradient Background for Full Page ===== */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== Glassmorphism Card Style for Form ===== */
+.form-container {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 40px;
+  width: 90%;
+  max-width: 400px;
+  color: #fff;
+  animation: fadeIn 1s ease;
+  text-align: center;
+}
+
+/* ===== Input Styling ===== */
+.form-container input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* ===== Placeholder Color ===== */
+.form-container input::placeholder {
+  color: #ddd;
+}
+
+/* ===== Button Styling ===== */
+.form-container button {
+  padding: 12px 25px;
+  background-color: #0984e3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.form-container button:hover {
+  background-color: #74b9ff;
+}
+
+/* ===== Link Styling ===== */
+.form-container a {
+  color: #ffeaa7;
+  text-decoration: none;
+  display: block;
+  margin-top: 20px;
+}
+
+/* ===== Heading Animation ===== */
+.form-container h2 {
+  margin-bottom: 20px;
+  animation: slideIn 0.7s ease;
+}
+
+/* ===== Fade-in Animation ===== */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Slide-in Animation ===== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

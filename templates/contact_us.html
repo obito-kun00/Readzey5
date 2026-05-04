@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  .contact-wrapper {
+    max-width: 900px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .contact-form-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 2.5rem;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contact-form-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-light);
+  }
+
+  .contact-form-card p {
+    color: #64748b;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+  }
+
+  .input-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+  }
+
+  .input-field, .textarea-field {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    font-size: 1rem;
+    color: var(--text-light);
+    transition: var(--transition);
+  }
+
+  .textarea-field {
+    min-height: 150px;
+    resize: vertical;
+  }
+
+  .input-field:focus, .textarea-field:focus {
+    background: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    outline: none;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .submit-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+  }
+
+  /* Info Column */
+  .contact-info-col h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-light);
+  }
+
+  .faq-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--glass-border);
+    margin-bottom: 1.5rem;
+  }
+
+  .faq-card h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .faq-card p {
+    font-size: 0.875rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 868px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  body.dark-mode .contact-form-card { background: #1e293b; border: 1px solid #334155; }
+  body.dark-mode .input-field, body.dark-mode .textarea-field { background: #0f172a; border-color: #334155; color: white; }
+  body.dark-mode .faq-card { background: rgba(30, 41, 59, 0.6); border-color: #334155; }
+  body.dark-mode .contact-info-col h3 { color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contact-wrapper fade-in">
+  <div class="contact-grid">
+    <!-- Form Card -->
+    <div class="contact-form-card">
+      <h2>Get in Touch</h2>
+      <p>Have a question or feedback? We'd love to hear from you.</p>
+
+      <form method="POST" action="{{ url_for('contact_us') }}">
+        <div class="input-group">
+          <label for="email">Your Email</label>
+          <input type="email" id="email" name="email" class="input-field" placeholder="name@example.com" required value="{{ current_user.email if current_user.is_authenticated else '' }}">
+        </div>
+
+        <div class="input-group">
+          <label for="problem">How can we help?</label>
+          <textarea id="problem" name="problem" class="textarea-field" placeholder="Tell us more about your issue..." required></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <span>Send Message</span>
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- Info/FAQ Column -->
+    <div class="contact-info-col">
+      <h3>Common Questions</h3>
+      
+      <div class="faq-card">
+        <h4><i class="fas fa-key"></i> Password Reset</h4>
+        <p>You can reset your password from the login page by clicking "Forgot Password". We'll send instructions to your email.</p>
+      </div>
+
+      <div class="faq-card">
+        <h4><i class="fas fa-book-open"></i> Full Access</h4>
+        <p>Yes, all books in our library are completely free to read online. No hidden subscriptions or fees.</p>
+      </div>
+
+      <div class="faq-card">
+        <h4><i class="fas fa-headset"></i> Response Time</h4>
+        <p>Our team typically responds to all inquiries within 24 hours during business days.</p>
+      </div>
+
+      <div style="margin-top: 2rem; padding-left: 1rem;">
+        <p style="font-size: 0.85rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Direct Contact</p>
+        <p style="font-size: 1rem; color: var(--primary); font-weight: 700; margin-top: 0.5rem;">support@readezy.com</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

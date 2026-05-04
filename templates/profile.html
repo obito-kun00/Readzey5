@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  .profile-container {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+  }
+
+  /* Profile Header */
+  .profile-header {
+    background: white;
+    border-radius: 2rem;
+    padding: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .profile-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    border-radius: 50%;
+    transform: translate(100px, -100px);
+  }
+
+  .profile-avatar-container {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 2.5rem;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .edit-avatar-btn {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    background: var(--primary);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 3px solid white;
+    transition: var(--transition);
+  }
+
+  .edit-avatar-btn:hover {
+    transform: scale(1.1);
+    background: var(--primary-hover);
+  }
+
+  .profile-info h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .profile-info p {
+    color: #64748b;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.02);
+    text-align: center;
+    transition: var(--transition);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-shadow);
+  }
+
+  .stat-card i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    opacity: 0.8;
+  }
+
+  .stat-card .value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-light);
+  }
+
+  .stat-card .label {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  /* Dashboard Rows */
+  .dashboard-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+  }
+
+  .card-block {
+    background: white;
+    padding: 2rem;
+    border-radius: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.02);
+    margin-bottom: 2rem;
+  }
+
+  .card-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Activity Timeline */
+  .activity-timeline {
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .activity-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: #e2e8f0;
+  }
+
+  .activity-item {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+
+  .activity-item::before {
+    content: '';
+    position: absolute;
+    left: -2.35rem;
+    top: 0.25rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+  }
+
+  .activity-item .time {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  .activity-item .desc {
+    font-weight: 600;
+    color: var(--text-light);
+  }
+
+  /* Badges */
+  .badge-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .badge-item {
+    background: #f8fafc;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    transition: var(--transition);
+  }
+
+  .badge-item:hover {
+    background: white;
+    border-color: var(--primary);
+    transform: scale(1.05);
+  }
+
+  /* Progress Bars */
+  .progress-item {
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .progress-bar-bg {
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+    transition: width 1s ease-out;
+  }
+
+  @media (max-width: 968px) {
+    .profile-container {
+      margin: 2rem auto;
+      padding: 0 1.25rem;
+    }
+    .profile-header {
+      flex-direction: column;
+      text-align: center;
+      padding: 2rem 1.5rem;
+      gap: 1.5rem;
+    }
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+    }
+    .profile-info h2 {
+      font-size: 2rem;
+    }
+    .stats-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .stat-card {
+      padding: 1.25rem 0.75rem;
+    }
+    .stat-card .value {
+      font-size: 1.5rem;
+    }
+    .dashboard-row {
+      grid-template-columns: 1fr;
+    }
+    .card-block {
+      padding: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  body.dark-mode .profile-header,
+  body.dark-mode .stat-card,
+  body.dark-mode .card-block {
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+  }
+  
+  body.dark-mode .profile-info h2,
+  body.dark-mode .stat-card .value,
+  body.dark-mode .card-block h3,
+  body.dark-mode .activity-item .desc,
+  body.dark-mode .progress-header {
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container fade-in">
+  <!-- Profile Summary -->
+  <div class="profile-header">
+    <div class="profile-avatar-container">
+      {% set photo_url = url_for('static', filename='Uploads/' + current_user_profile.profile_photo) if
+      current_user_profile and current_user_profile.profile_photo else url_for('static', filename='default_user.png') %}
+      <img src="{{ photo_url }}" class="profile-avatar" alt="User Avatar">
+      <a href="{{ url_for('profile') }}?edit=1" class="edit-avatar-btn">
+        <i class="fas fa-camera"></i>
+      </a>
+    </div>
+
+    <div class="profile-info">
+      {% if is_edit_mode %}
+      <form method="POST" enctype="multipart/form-data" action="{{ url_for('profile') }}?edit=1" class="edit-form">
+        <label for="photo" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--primary); font-weight: 600;"><i class="fas fa-upload"></i> Upload New Photo</label>
+        <input type="file" name="photo" id="photo" accept="image/*" style="display: block; margin-bottom: 1.5rem; padding: 0.5rem;">
+        
+        <input type="text" name="username" value="{{ current_user.username }}" class="search-wrapper"
+          style="font-size: 1.5rem; margin-bottom: 1rem; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 10px; width: 100%; box-sizing: border-box; background: transparent; color: inherit;">
+        <input type="email" name="email" value="{{ current_user.email }}"
+          style="display: block; margin-bottom: 1.5rem; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 10px; width: 100%; box-sizing: border-box; background: transparent; color: inherit;">
+        <div class="hero-buttons">
+          <button type="submit" class="btn-primary" style="border: none; cursor: pointer;">Save Changes</button>
+          <a href="{{ url_for('profile') }}" class="btn-secondary">Cancel</a>
+        </div>
+      </form>
+      {% else %}
+      <h2>{{ current_user.username }}</h2>
+      <p><i class="far fa-envelope"></i> {{ current_user.email }}</p>
+      <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.7;">
+        <i class="far fa-calendar-alt"></i> Joined {{ current_user_profile.created_at.strftime('%B %Y') if
+        current_user_profile else 'Recently' }}
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <i class="fas fa-book"></i>
+      <span class="value">{{ stats.books }}</span>
+      <span class="label">Books Read</span>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-file-alt"></i>
+      <span class="value">{{ stats.pages }}</span>
+      <span class="label">Pages Completed</span>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-medal"></i>
+      <span class="value">{{ badges|length }}</span>
+      <span class="label">Achievements</span>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-star"></i>
+      <span class="value">{{ favorites_count if favorites_count else 0 }}</span>
+      <span class="label">Favorites</span>
+    </div>
+  </div>
+
+  <div class="dashboard-row">
+    <!-- Left Column: Activity & Progress -->
+    <div class="left-col">
+      <div class="card-block">
+        <h3><i class="fas fa-tasks"></i> Reading Progress</h3>
+        {% for book in books %}
+        {% if book.total_pages > 0 %}
+        <div class="progress-item">
+          <div class="progress-header">
+            <span>{{ book.title }}</span>
+            <span>{{ ((book.current_page / book.total_pages) * 100)|round|int }}%</span>
+          </div>
+          <div class="progress-bar-bg">
+            {% set progress_percent = (book.current_page / book.total_pages) * 100 %}
+            <div class="progress-bar-fill" style="--progress: {{ progress_percent }}%; width: var(--progress);"></div>
+          </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <p style="color: #64748b; font-style: italic;">No reading progress found. Start a new book from the library!</p>
+        {% endfor %}
+      </div>
+
+      <div class="card-block">
+        <h3><i class="fas fa-history"></i> Recent Activity</h3>
+        <div class="activity-timeline">
+          {% for act in activities %}
+          <div class="activity-item">
+            <span class="time">{{ act.created_at.strftime('%d %b, %H:%M') }}</span>
+            <p class="desc">{{ act.activity_type }}: {{ act.description }}</p>
+          </div>
+          {% else %}
+          <p style="color: #64748b;">No recent activity to show.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Achievements & Reviews -->
+    <div class="right-col">
+      <div class="card-block">
+        <h3><i class="fas fa-trophy"></i> Badges</h3>
+        <div class="badge-grid">
+          {% for badge in badges %}
+          <div class="badge-item">
+            <i class="fas fa-certificate" style="color: var(--primary)"></i>
+            {{ badge.badge_name }}
+          </div>
+          {% else %}
+          <p style="color: #64748b; font-size: 0.9rem;">Start reading to earn badges!</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

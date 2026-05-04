@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  .friends-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  
+  .card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--primary);
+    margin-bottom: 1rem;
+  }
+
+  .user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  body.dark-mode .user-item {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn:hover {
+    background: var(--primary-hover);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-outline:hover {
+    background: var(--primary);
+    color: white;
+  }
+
+  .search-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    outline: none;
+  }
+  body.dark-mode .search-input {
+    background: rgba(0,0,0,0.2);
+    color: white;
+    border-color: #334155;
+  }
+
+  .dot-online {
+    color: #22c55e;
+    font-size: 0.8rem;
+    filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.5));
+  }
+
+  .dot-offline {
+    color: #94a3b8;
+    font-size: 0.8rem;
+  }
+
+  body.dark-mode .dot-offline {
+    color: #475569;
+  }
+  @media (max-width: 968px) {
+    .friends-container {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+      gap: 1.5rem;
+    }
+    .user-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .user-item form {
+      width: 100%;
+    }
+    .user-item .btn {
+      width: 100%;
+      text-align: center;
+    }
+    .invite-form {
+      flex-direction: column;
+      width: 100%;
+    }
+    .invite-form select {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="friends-container">
+
+  <!-- Left Column: Search & Invites -->
+  <div class="col">
+    <!-- Active Reading Invites -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <h2>Reading Session Invites</h2>
+      <div class="user-list">
+        {% if reading_invites %}
+          {% for invite in reading_invites %}
+            <div class="user-item">
+              <div>
+                <strong>{{ invite.sender.username }}</strong> invited you to read 
+                <em>{{ invite.book.title }}</em>
+              </div>
+              <form action="{{ url_for('accept_invite', invite_id=invite.id) }}" method="POST">
+                <button type="submit" class="btn">Join</button>
+              </form>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p style="color: #64748b;">No active reading invites.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Find Users -->
+    <div class="card">
+      <h2>Find Users</h2>
+      <form action="{{ url_for('friends') }}" method="GET" class="search-form">
+        <input type="text" name="search" class="search-input" placeholder="Search usernames..." required value="{{ request.args.get('search', '') }}">
+        <button type="submit" class="btn"><i class="fas fa-search"></i> Search</button>
+        {% if request.args.get('search') %}
+        <a href="{{ url_for('friends') }}" class="btn btn-outline" style="text-decoration: none; padding: 0.5rem 1rem;"><i class="fas fa-times"></i> Clear</a>
+        {% endif %}
+      </form>
+      
+      <div class="user-list">
+        {% if users %}
+          {% for user in users %}
+            <div class="user-item">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="status-dot {{ 'dot-online' if user.id in online_user_ids else 'dot-offline' }}" id="search-status-{{ user.id }}" title="{{ 'Online' if user.id in online_user_ids else 'Offline' }}">
+                  <i class="fas fa-circle"></i>
+                </span>
+                {{ user.username }}
+              </span>
+              {% if user.id in friend_ids %}
+                <button type="button" class="btn" style="background: transparent; color: #64748b; border: 1px solid #cbd5e1;" disabled><i class="fas fa-user-check"></i> Friends</button>
+              {% elif user.id in sent_req_ids %}
+                <button type="button" class="btn" style="background: transparent; color: #64748b; border: 1px solid #cbd5e1;" disabled><i class="fas fa-check"></i> Sent</button>
+              {% else %}
+                <form action="{{ url_for('send_friend_request', user_id=user.id) }}" method="POST" class="ajax-friend-request">
+                  <button type="button" class="btn btn-outline send-req-btn"><i class="fas fa-user-plus"></i> Add</button>
+                </form>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Friends & Friend Requests -->
+  <div class="col">
+    <!-- Friend Requests -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <h2>Friend Requests</h2>
+      <div class="user-list">
+        {% if received_requests %}
+          {% for req in received_requests %}
+            <div class="user-item">
+              <span>{{ req.sender.username }}</span>
+              <form action="{{ url_for('accept_friend_request', request_id=req.id) }}" method="POST">
+                <button type="submit" class="btn">Accept</button>
+              </form>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p style="color: #64748b;">No pending requests.</p>
+        {% endif %}
+      </div>
+      
+      {% if sent_requests %}
+      <div style="margin-top: 1rem;">
+        <small style="color: #64748b;">Sent Requests: {{ sent_requests|length }}</small>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Your Friends List -->
+    <div class="card">
+      <h2>Your Friends</h2>
+      <div class="user-list">
+        {% if friends_list %}
+          {% for friend in friends_list %}
+            <div class="user-item">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="status-dot {{ 'dot-online' if friend.id in online_user_ids else 'dot-offline' }}" id="status-{{ friend.id }}" title="{{ 'Online' if friend.id in online_user_ids else 'Offline' }}">
+                  <i class="fas fa-circle"></i>
+                </span>
+                {{ friend.username }}
+              </span>
+              <!-- Invite to Read Button & Form -->
+              <form action="{{ url_for('invite_to_read') }}" method="POST" class="invite-form" data-friend-id="{{ friend.id }}" style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="hidden" name="friend_id" value="{{ friend.id }}">
+                <select name="book_id" class="search-input" style="padding: 0.3rem;" required>
+                  <option value="" disabled selected>Select Book...</option>
+                  {% for book in all_books %}
+                    <option value="{{ book.id }}">{{ book.title }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Invite</button>
+              </form>
+            </div>
+            
+            <!-- Active session for both users -->
+            {% for inv in accepted_invites %}
+              {% if inv.receiver_id == friend.id or inv.sender_id == friend.id %}
+                 <div style="text-align: right; padding: 0.5rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                   <a href="{{ url_for('join_my_session', invite_id=inv.id) }}" class="btn">Join Session ({{ inv.book.title }})</a>
+                   <form action="{{ url_for('end_session', invite_id=inv.id) }}" method="POST">
+                      <button type="submit" class="btn" style="background: transparent; border: 1px solid #ef4444; color: #ef4444;" title="End Session" onmouseover="this.style.background='#ef4444'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#ef4444';"><i class="fas fa-trash"></i> End</button>
+                   </form>
+                 </div>
+              {% endif %}
+            {% endfor %}
+
+          {% endfor %}
+        {% else %}
+          <p style="color: #64748b;">You have no friends yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Reading Invite Logic
+  document.querySelectorAll('.invite-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      const friendId = this.dataset.friendId;
+      const statusDot = document.getElementById('status-' + friendId);
+      
+      if (statusDot && statusDot.classList.contains('dot-offline')) {
+        const confirmed = confirm("This friend is offline. They will see your invite when they next log in. Do you still want to send it?");
+        if (!confirmed) {
+          e.preventDefault();
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('.send-req-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const form = button.closest('form');
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+      
+      try {
+        const resp = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
+        const data = await resp.json();
+        
+        if (data.status === 'success' || data.status === 'info') {
+          button.innerHTML = data.status === 'success' ? '<i class="fas fa-check"></i> Sent' : '<i class="fas fa-info-circle"></i> Sent';
+          button.classList.remove('btn-outline');
+          button.classList.add('btn');
+        } else {
+          button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+          button.disabled = false;
+        }
+      } catch (err) {
+        console.error(err);
+        button.innerHTML = '<i class="fas fa-user-plus"></i> Add Friend';
+        button.disabled = false;
+        alert("An error occurred while sending the request.");
+      }
+    });
+  });
+
+  // Online Status Events
+  if (window.globalSocket) {
+    window.globalSocket.on('user_online', function(data) {
+      document.querySelectorAll('#status-' + data.user_id + ', #search-status-' + data.user_id).forEach(dot => {
+        dot.className = "status-dot dot-online";
+        dot.title = "Online";
+      });
+    });
+
+    window.globalSocket.on('user_offline', function(data) {
+      document.querySelectorAll('#status-' + data.user_id + ', #search-status-' + data.user_id).forEach(dot => {
+        dot.className = "status-dot dot-offline";
+        dot.title = "Offline";
+      });
+    });
+  }
+});
+</script>
+{% endblock %}

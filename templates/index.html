@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  /* Hero Section */
+  .hero-section {
+    position: relative;
+    padding: 8rem 2rem 6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1300px;
+    margin: 0 auto;
+    gap: 4rem;
+    min-height: 80vh;
+  }
+
+  .hero-content {
+    flex: 1;
+    z-index: 10;
+  }
+
+  .hero-content h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 8vw, 4.5rem);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    color: var(--text-light);
+    font-weight: 800;
+  }
+
+  .hero-content p {
+    font-size: 1.25rem;
+    color: #64748b;
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+    line-height: 1.6;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 25px -5px rgba(79, 70, 229, 0.5);
+  }
+
+  .btn-secondary {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+  }
+
+  .btn-secondary:hover {
+    color: var(--primary);
+    transform: translateX(5px);
+  }
+
+  .hero-visual {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    z-index: 5;
+  }
+
+  .hero-shape {
+    position: absolute;
+    width: 120%;
+    height: 120%;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    filter: blur(40px);
+    z-index: -1;
+    animation: blobMorph 10s infinite alternate;
+  }
+
+  @keyframes blobMorph {
+    0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+    100% { border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%; }
+  }
+
+  .featured-book-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 2rem;
+    box-shadow: var(--card-shadow);
+    transform: rotate(5deg);
+    max-width: 320px;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: var(--transition);
+  }
+
+  .featured-book-card:hover {
+    transform: rotate(0deg) scale(1.05);
+  }
+
+  .fav-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    z-index: 10;
+    transition: var(--transition);
+    color: #64748b;
+  }
+
+  .fav-btn:hover {
+    background: white;
+    transform: scale(1.1);
+  }
+
+  .fav-btn.active {
+    color: #fbbf24;
+  }
+
+  .featured-book-card img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Slider Section */
+  .slider-section {
+    padding: 6rem 0;
+    overflow: hidden;
+    background: rgba(79, 70, 229, 0.03);
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .infinite-slider {
+    display: flex;
+    width: calc(250px * 20); /* Adjust based on book count */
+    animation: scroll 40s linear infinite;
+  }
+
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-250px * 10)); } /* Half of total width */
+  }
+
+  .book-card-minimal {
+    width: 200px;
+    margin: 0 25px;
+    flex-shrink: 0;
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .book-card-minimal:hover {
+    transform: translateY(-10px);
+  }
+
+  .book-card-minimal img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+  }
+
+  .book-card-minimal h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 968px) {
+    .hero-section {
+      flex-direction: column;
+      text-align: center;
+      padding-top: 4rem;
+      padding-bottom: 2rem;
+      min-height: auto;
+      gap: 2rem;
+    }
+    .hero-content p {
+      margin: 0 auto 2.5rem;
+      font-size: 1.1rem;
+    }
+    .hero-buttons {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .hero-visual {
+      margin-top: 2rem;
+      width: 100%;
+    }
+    .featured-book-card {
+      max-width: 280px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .section-header h2 {
+      font-size: 2rem;
+    }
+    .book-card-minimal {
+      width: 160px;
+      margin: 0 15px;
+    }
+    .infinite-slider {
+      width: calc(190px * 20); 
+    }
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(-190px * 10)); }
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section fade-in">
+  <div class="hero-content">
+    <h1>Your Gateway to Infinite <span style="color: var(--primary)">Stories</span></h1>
+    <p>Dive into a curated collection of thousands of premium eBooks. From gripping thrillers to insightful non-fiction, find your next obsession at ReadZey.</p>
+    <div class="hero-buttons">
+      <a href="{{ url_for('library') }}" class="btn-primary">Browse Library</a>
+      <a href="{{ url_for('about_us') }}" class="btn-secondary">Learn More <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+  
+  <div class="hero-visual">
+    <div class="hero-shape"></div>
+    {% if books %}
+      <div class="featured-book-card" style="position: relative;">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('toggle_favourite', book_id=books[0].book.id) }}" class="fav-btn {% if books[0].is_favourite %}active{% endif %}">
+            <i class="fas fa-star"></i>
+          </a>
+        {% endif %}
+        <div onclick="window.location.href=`{{ url_for('read', book_id=books[0].book.id) }}`;">
+          {% set cover_url = url_for('static', filename=books[0].book.cover) if books[0].book.cover else 'https://via.placeholder.com/300x450.png?text=Featured+Book' %}
+          <img src="{{ cover_url }}" alt="Featured Book" onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450.png?text=Featured+Book';">
+          <div style="text-align: center;">
+            <small style="color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Featured Read</small>
+            <h3 style="margin-top: 5px;">{{ books[0].book.title }}</h3>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="slider-section">
+  <div class="section-header">
+    <small style="color: var(--primary); font-weight: 700; text-transform: uppercase;">Trending Now</small>
+    <h2>Currently Popular</h2>
+  </div>
+  
+  <div class="infinite-slider-container" style="position: relative;">
+    <div class="infinite-slider">
+      {% for i in range(2) %} {# Repeat twice for infinite effect #}
+        {% for item in books %}
+          <div class="book-card-minimal">
+            {% if current_user.is_authenticated %}
+              <a href="{{ url_for('toggle_favourite', book_id=item.book.id) }}" class="fav-btn {% if item.is_favourite %}active{% endif %}" style="top: 0.5rem; right: 0.5rem; width: 30px; height: 30px; font-size: 0.8rem;">
+                <i class="fas fa-star"></i>
+              </a>
+            {% endif %}
+            <div onclick="window.location.href=`{{ url_for('read', book_id=item.book.id) }}`;">
+              {% set cover_url = url_for('static', filename=item.book.cover) if item.book.cover else 'https://via.placeholder.com/200x300.png?text=No+Cover' %}
+              <img src="{{ cover_url }}" alt="{{ item.book.title }}" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x300.png?text=No+Cover';">
+              <h3>{{ item.book.title }}</h3>
+            </div>
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<script>
+  // Add some interactivity if needed
+  document.addEventListener('DOMContentLoaded', () => {
+    // Reveal animations on scroll
+    const observerOptions = {
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('fade-in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('section').forEach(section => {
+      section.classList.add('opacity-0'); // Initial state
+      observer.observe(section);
+    });
+  });
+</script>
+{% endblock %}
+

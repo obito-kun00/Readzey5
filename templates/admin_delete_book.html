@@ -1,0 +1,130 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Manage Books - Readezy Admin{% endblock %}
+{% block page_title %}Manage Library Content{% endblock %}
+
+{% block head %}
+<style>
+  .book-management-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 2.5rem;
+  }
+
+  .admin-book-card {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    transition: var(--transition);
+    border: 1px solid #f1f5f9;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admin-book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+
+  .book-cover-wrapper {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background: #f8fafc;
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .book-cover-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+  }
+
+  .admin-book-card:hover .book-cover-wrapper img {
+    transform: scale(1.05);
+  }
+
+  .book-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.5rem;
+  }
+
+  .book-meta {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 1.5rem;
+  }
+
+  .delete-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .delete-btn:hover {
+    background: #ef4444;
+    color: white;
+  }
+
+  body.dark-mode .admin-book-card { background: #1e293b; border-color: #334155; }
+  body.dark-mode .book-title { color: white; }
+  body.dark-mode .book-cover-wrapper { background: #0f172a; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="book-management-grid fade-in">
+  {% for book in books %}
+  <div class="admin-book-card">
+    <div class="book-cover-wrapper">
+      <img src="{{ url_for('static', filename=book.cover) }}" 
+           alt="{{ book.title }}"
+           onerror="this.src='https://via.placeholder.com/200x300?text=No+Cover'">
+    </div>
+    <div class="book-title">{{ book.title }}</div>
+    <div class="book-meta">
+      <span title="Pages"><i class="fas fa-file-alt"></i> {{ book.total_pages }} Pages</span>
+    </div>
+    
+    <form method="POST" action="{{ url_for('admin_delete_book') }}" onsubmit="return confirm('Wait! Are you absolutely sure you want to permanently delete \'{{ book.title }}\'? This cannot be undone.');">
+      <input type="hidden" name="book_id" value="{{ book.id }}">
+      <button type="submit" class="delete-btn">
+        <i class="fas fa-trash-alt"></i>
+        <span>Delete Book</span>
+      </button>
+    </form>
+  </div>
+  {% else %}
+  <div style="grid-column: 1/-1; text-align: center; padding: 5rem; color: #64748b;">
+    <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+    <p>No books found in the library catalog.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

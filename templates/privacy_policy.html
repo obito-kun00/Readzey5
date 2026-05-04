@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+  .privacy-wrapper {
+    max-width: 800px;
+    margin: 4rem auto;
+    padding: 2rem;
+  }
+
+  .privacy-card {
+    background: white;
+    padding: 4rem;
+    border-radius: 2.5rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #f1f5f9;
+  }
+
+  .privacy-card h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #0f172a;
+    text-align: center;
+  }
+
+  .privacy-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .privacy-section h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--primary);
+  }
+
+  .privacy-section p {
+    color: #475569;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+
+  .privacy-section ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .privacy-section li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: #475569;
+  }
+
+  .privacy-section li::before {
+    content: "•";
+    color: var(--primary);
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+  }
+
+  body.dark-mode .privacy-card { background: #1e293b; border-color: #334155; }
+  body.dark-mode .privacy-card h1 { color: white; }
+  body.dark-mode .privacy-section p, body.dark-mode .privacy-section li { color: #cbd5e1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="privacy-wrapper fade-in">
+  <div class="privacy-card">
+    <h1>Privacy Policy</h1>
+    
+    <div class="privacy-section">
+      <h2>1. Information We Collect</h2>
+      <p>At Readezy, we value your privacy. We collect only the information necessary to provide you with a seamless reading experience:</p>
+      <ul>
+        <li>Account Information: Username and email address provided during registration.</li>
+        <li>Reading Data: Your reading progress, bookmarks, and favorite books.</li>
+        <li>User Activity: Basic logs of your interactions to improve our service.</li>
+      </ul>
+    </div>
+
+    <div class="privacy-section">
+      <h2>2. How We Use Your Data</h2>
+      <p>Your data is used strictly for personalized services, including:</p>
+      <ul>
+        <li>Synchronizing your reading progress across devices.</li>
+        <li>Maintaining your library and favorites.</li>
+        <li>Providing customer support and security updates.</li>
+      </ul>
+    </div>
+
+    <div class="privacy-section">
+      <h2>3. Data Security</h2>
+      <p>We use industry-standard encryption and security measures to protect your personal information and uploaded manuscripts. Your password is securely hashed and never stored in plain text.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h2>4. Third-Party Services</h2>
+      <p>Readezy does not sell or trade your personal data to third parties. We may use trusted tools for site analytics and font hosting (like Google Fonts) to enhance platform performance.</p>
+    </div>
+
+    <div class="privacy-section">
+      <h2>5. Your Rights</h2>
+      <p>You have the right to access, update, or delete your account information at any time via your profile settings. If you wish to permanently remove all your data, please contact our support team.</p>
+    </div>
+
+    <p style="text-align: center; color: #94a3b8; font-size: 0.85rem; margin-top: 3rem;">
+      Last Updated: March 20, 2026
+    </p>
+  </div>
+</div>
+{% endblock %}

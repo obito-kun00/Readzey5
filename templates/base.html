@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Readezy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #c026d3;   /* Fuchsia/Pink */
+      --primary-hover: #a21caf; 
+      --secondary: #9333ea; /* Purple */
+      --accent: #fb7185;    /* Light Pink/Rose Accent */
+      --bg-light: #fdf4ff;  /* Extremely Light Pink background */
+      --bg-dark: #2e1065;   /* Very Dark Purple */
+      --text-light: #1e293b;
+      --text-dark: #fdf4ff;
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.3);
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-mode {
+      --bg-light: #1e1b4b; /* Very Dark Indigo/Purple */
+      --text-light: #fdf4ff;
+      --glass-bg: rgba(30, 27, 75, 0.8);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark-mode .flash {
+      background: var(--glass-bg);
+      color: white;
+      border-color: var(--glass-border);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-light);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.5s ease;
+      overflow-x: hidden;
+    }
+
+    /* Header & Navigation */
+    .header {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--glass-border);
+      color: var(--text-light);
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      transition: var(--transition);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      text-decoration: none;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+    }
+
+    .logo img {
+      height: 40px;
+      margin-right: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    .logo:hover img {
+      transform: rotate(-5deg) scale(1.1);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .nav a:hover {
+      background: rgba(79, 70, 229, 0.1);
+      color: var(--primary);
+    }
+
+    .nav a.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Dropdown */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-btn {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-radius: 9999px;
+      transition: var(--transition);
+    }
+
+    .dropdown-btn:hover {
+      background: rgba(79, 70, 229, 0.1);
+      color: var(--primary);
+    }
+
+    .dropdown::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      height: 15px; /* Invisible bridge to prevent hover from dropping */
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      min-width: 200px;
+      box-shadow: var(--card-shadow);
+      z-index: 1001;
+      border-radius: 1rem;
+      border: 1px solid var(--glass-border);
+      top: calc(100% + 15px);
+      left: 0;
+      overflow: hidden;
+      animation: slideInDown 0.3s ease;
+    }
+
+    @keyframes slideInDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dropdown-content a {
+      padding: 0.75rem 1.25rem;
+      border-radius: 0;
+    }
+
+    .dropdown-content a:hover {
+      background: var(--primary);
+      color: white !important;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    /* Theme Toggle */
+    .theme-switch {
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      transition: var(--transition);
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+    }
+
+    .theme-switch:hover {
+      transform: scale(1.1) rotate(15deg);
+      background: var(--primary-hover);
+    }
+
+    /* Mobile Menu (Hidden in App Mode) */
+    .menu-icon {
+      display: none;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--glass-border);
+      z-index: 1000;
+      padding: 0.5rem 1rem 0.75rem;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: var(--transition);
+      padding: 0.25rem;
+    }
+
+    .bottom-nav-item i {
+      font-size: 1.25rem;
+      margin-bottom: 2px;
+    }
+
+    .bottom-nav-item:hover,
+    .bottom-nav-item.active {
+      color: var(--primary);
+    }
+
+    .desktop-only {
+      display: flex !important;
+    }
+    .mobile-only {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .desktop-only {
+        display: none !important;
+      }
+      .mobile-only {
+        display: flex !important;
+      }
+      .nav {
+        display: none !important;
+      }
+      .logo {
+        font-size: 1.5rem;
+      }
+      .logo img {
+        height: 32px;
+      }
+      .menu-icon {
+        display: none !important;
+      }
+      .bottom-nav {
+        display: flex;
+        padding-bottom: 20px; /* Safer for modern phones */
+      }
+      main {
+        padding-bottom: 100px; /* Space for bottom nav */
+      }
+      footer {
+        padding-bottom: 140px;
+      }
+      .header {
+        padding: 0.5rem 1.25rem;
+      }
+    }
+
+    /* More Menu Overlay */
+    .more-menu-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: none;
+      align-items: flex-end;
+      transition: var(--transition);
+    }
+
+    .more-menu-overlay.active {
+      display: flex;
+    }
+
+    .more-menu-content {
+      width: 100%;
+      background: var(--bg-light);
+      border-radius: 2rem 2rem 0 0;
+      padding: 2rem;
+      box-shadow: 0 -10px 25px rgba(0,0,0,0.2);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .more-menu-overlay.active .more-menu-content {
+      transform: translateY(0);
+    }
+
+    .more-menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .more-menu-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+    }
+
+    .more-menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .more-menu-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 1.25rem;
+      text-decoration: none;
+      color: var(--text-light);
+      font-weight: 600;
+      transition: var(--transition);
+      border: 1px solid var(--glass-border);
+    }
+
+    body.dark-mode .more-menu-item {
+      background: #1e293b;
+      color: white;
+    }
+
+    .more-menu-item i {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+
+    .more-menu-item:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .more-menu-item:hover i {
+      color: white;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding-top: 0;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-dark);
+      color: #94a3b8;
+      padding: 4rem 2rem 2rem;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 3rem;
+      text-align: left;
+      margin-bottom: 3rem;
+    }
+
+    .footer-section h4 {
+      color: white;
+      font-family: 'Playfair Display', serif;
+      margin-bottom: 1.5rem;
+      font-size: 1.25rem;
+    }
+
+    .footer-section ul {
+      list-style: none;
+    }
+
+    .footer-section ul li {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-section ul li a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-section ul li a:hover {
+      color: var(--primary);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 2rem;
+      font-size: 0.875rem;
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-light);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .flashes {
+      position: fixed;
+      top: 5rem;
+      right: 2rem;
+      z-index: 2000;
+    }
+    .flash {
+      background: white;
+      color: var(--text-light);
+      padding: 1rem 2rem;
+      border-radius: 0.75rem;
+      margin-bottom: 0.5rem;
+      box-shadow: var(--card-shadow);
+      border-left: 4px solid var(--primary);
+      animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+  <script>
+    function toggleTheme() {
+      const body = document.body;
+      body.classList.toggle('dark-mode');
+      const isDark = body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-icon').textContent = '☀️';
+      }
+      
+      const menuIcon = document.getElementById('menu-icon');
+      const navLinks = document.getElementById('nav-links');
+      if (menuIcon) {
+        menuIcon.addEventListener('click', () => {
+          navLinks.classList.toggle('open');
+        });
+      }
+
+      // More Menu Toggle
+      window.toggleMoreMenu = function() {
+        const overlay = document.getElementById('more-menu-overlay');
+        overlay.classList.toggle('active');
+        if (overlay.classList.contains('active')) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      };
+    });
+  </script>
+  
+  {% if current_user.is_authenticated %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.js"></script>
+  <script>
+    // Global connection variable
+    window.globalSocket = io();
+    
+    // Listen for automatic redirects
+    window.globalSocket.on('redirect_to_session', function(data) {
+       if (data.url) {
+         // Optionally you could add an alert or toast here:
+         // alert("Your friend has accepted! Joining the session...");
+         window.location.href = data.url;
+       }
+    });
+  </script>
+  {% endif %}
+  
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="header">
+    <a href="{{ url_for('index') }}" class="logo">
+      <img src="{{ url_for('static', filename='your-logo.png') }}" alt="Readzey Logo" id="logo-img" style="height: 40px;" onerror="this.style.display='none';">
+      ReadZey
+    </a>
+    
+    <nav class="nav" id="nav-links">
+      <a href="{{ url_for('index') }}" class="fade-in">Home</a>
+      <div class="dropdown fade-in">
+        <button class="dropdown-btn" type="button">Library <i class="fas fa-chevron-down"></i></button>
+        <div class="dropdown-content">
+          <a href="{{ url_for('library') }}">All Books</a>
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('favourite_books') }}">Favourite Books</a>
+          {% endif %}
+        </div>
+      </div>
+      <a href="{{ url_for('about_us') }}" class="fade-in">About</a>
+      <a href="{{ url_for('contact_us') }}" class="fade-in">Contact</a>
+      
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('friends') }}" class="fade-in">Friends</a>
+        <a href="{{ url_for('profile') }}" class="fade-in">Profile</a>
+        <a href="{{ url_for('logout') }}" class="fade-in" style="color: #ef4444;">Logout</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="fade-in">Login</a>
+        <a href="{{ url_for('library') }}" class="btn-primary">Get Started</a>
+      {% endif %}
+      
+      <button onclick="toggleTheme()" class="theme-switch" id="theme-toggle">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </nav>
+    <div class="menu-icon" id="menu-icon">☰</div>
+  </header>
+
+  <main>
+    <div class="flashes">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    {% block content %}
+    {% endblock %}
+  </main>
+  
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>ReadZey</h4>
+        <p>Premium eBook platform for the modern reader. Explore, learn, and grow with thousands of curated titles.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="{{ url_for('library') }}">Library</a></li>
+          <li><a href="{{ url_for('featured') }}">Featured</a></li>
+          <li><a href="{{ url_for('about_us') }}">About Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="{{ url_for('contact_us') }}">Help Center</a></li>
+          <li><a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></li>
+          <li><a href="{{ url_for('terms_of_service') }}">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Readzey. Crafted with ❤️ for readers everywhere.</p>
+    </div>
+  </footer>
+
+  {% if request.endpoint != 'read' %}
+  <nav class="bottom-nav">
+    <a href="{{ url_for('index') }}" class="bottom-nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="{{ url_for('library') }}" class="bottom-nav-item {% if request.endpoint in ['library', 'favourite_books'] %}active{% endif %}">
+      <i class="fas fa-book"></i>
+      <span>Library</span>
+    </a>
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('friends') }}" class="bottom-nav-item {% if request.endpoint == 'friends' %}active{% endif %}">
+        <i class="fas fa-user-friends"></i>
+        <span>Friends</span>
+      </a>
+      <a href="{{ url_for('profile') }}" class="bottom-nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
+        <i class="fas fa-user-circle"></i>
+        <span>Profile</span>
+      </a>
+    {% endif %}
+    <a href="javascript:void(0)" onclick="toggleMoreMenu()" class="bottom-nav-item">
+      <i class="fas fa-ellipsis-h"></i>
+      <span>More</span>
+    </a>
+  </nav>
+  {% endif %}
+
+  <!-- More Menu Overlay HTML -->
+  <div class="more-menu-overlay" id="more-menu-overlay" onclick="if(event.target === this) toggleMoreMenu()">
+    <div class="more-menu-content">
+      <div class="more-menu-header">
+        <h3>More Options</h3>
+        <button onclick="toggleMoreMenu()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-light);"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="more-menu-grid">
+        <a href="{{ url_for('about_us') }}" class="more-menu-item">
+          <i class="fas fa-info-circle"></i>
+          <span>About Us</span>
+        </a>
+        <a href="{{ url_for('contact_us') }}" class="more-menu-item">
+          <i class="fas fa-envelope"></i>
+          <span>Contact</span>
+        </a>
+        <a href="{{ url_for('featured') }}" class="more-menu-item">
+          <i class="fas fa-star"></i>
+          <span>Featured</span>
+        </a>
+        <a href="{{ url_for('index') }}" class="more-menu-item" onclick="toggleTheme(); return false;">
+          <i class="fas fa-adjust"></i>
+          <span>Dark/Light</span>
+        </a>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('logout') }}" class="more-menu-item" style="grid-column: span 2; border-color: #fee2e2;">
+            <i class="fas fa-sign-out-alt" style="color: #ef4444;"></i>
+            <span style="color: #ef4444;">Logout</span>
+          </a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="more-menu-item" style="grid-column: span 2;">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Login / Join</span>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

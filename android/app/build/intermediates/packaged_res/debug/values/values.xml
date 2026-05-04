@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="dark_background">#1E1B4B</color>
+    <color name="pink_light">#FDF4FF</color>
+    <color name="pink_primary">#C026D3</color>
+    <color name="purple_secondary">#9333EA</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">Redsmart</string>
+    <style name="Theme.RedsmartApp" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/black</item>
+    </style>
+</resources>
