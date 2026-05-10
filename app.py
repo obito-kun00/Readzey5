@@ -925,4 +925,4 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    socketio.run(app, debug=True, port=8000)
+    socketio.run(app, debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 8000)))
